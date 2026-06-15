@@ -151,18 +151,28 @@ Path security:
 - Use sandboxing where available
 ```
 
-### 7. Memory Security
+### 7. Memory Security & Buffer Overflow Prevention
 
 ```
-RULE: Sensitive data in memory must be managed carefully.
+RULE: Protect memory from corruption, exposure, and heap/stack overflows.
 
-- Clear sensitive data from memory after use
-- Avoid string immutability issues (strings can't be cleared in managed languages)
-  - Use SecureString (.NET), byte arrays, or dedicated secure memory
-- Use memory-locked allocations for critical secrets (mlock)
-- Prevent memory dumps from containing secrets
-- Disable core dumps in production
-- Be cautious of swap file exposure (lock pages in memory)
+Memory-safe practices:
+- Preferred languages: Use memory-safe runtimes (.NET, Rust, Go, Java) for new development.
+- Bounds checking: Always check array boundaries and input lengths before buffer writes.
+- Safe functions: In native code (C/C++), ban dangerous functions:
+  - BANNED: strcpy, sprintf, strcat, gets, scanf
+  - USE INSTEAD: strncpy, snprintf, strncat, fgets, sscanf (or std::string/std::vector)
+
+Memory clearing and locks:
+- Clear sensitive data: Overwrite memory containing secrets (passwords, keys) with zeros (e.g., SecureZeroMemory on Windows) immediately after use.
+- Overcome string immutability: Avoid storing secrets in immutable strings (C# string, JS/TS strings) since garbage collectors may keep them in memory. Use byte arrays or SecureString (.NET) instead.
+- Lock memory: Use `mlock` (Unix) or `VirtualLock` (Windows) to prevent sensitive memory pages from being written to swap files on disk.
+
+Compilation hardening (for native binaries):
+- DEP/NX (Data Execution Prevention): Marks memory pages (like stack and heap) as non-executable.
+- ASLR (Address Space Layout Randomization): Randomizes memory offsets to prevent predictable shellcode jump addresses.
+- Stack Canaries (-fstack-protector /GS): Places cookie values on the stack to detect buffer overflows before returning from a function.
+- Control Flow Guard (CFG): Prevents hijack of indirect call targets.
 ```
 
 ### 8. Privilege Management
@@ -170,13 +180,13 @@ RULE: Sensitive data in memory must be managed carefully.
 ```
 RULE: Run with minimum required privileges.
 
-- Never run the app as Administrator/root unless necessary
-- If elevated privileges needed, request them only for specific operations
-- Use privilege separation (separate process for privileged operations)
-- Drop privileges as soon as elevated operation completes
-- On Windows: use proper UAC integration
-- On macOS: use Authorization Services for privileged helpers
-- On Linux: use PolicyKit or separate setuid helper
+- Never run the app as Administrator/root unless necessary.
+- If elevated privileges are needed, request them only for specific operations.
+- Use privilege separation (separate process for privileged operations).
+- Drop privileges as soon as elevated operation completes.
+- On Windows: use proper UAC integration.
+- On macOS: use Authorization Services for privileged helpers.
+- On Linux: use PolicyKit or separate setuid helper.
 ```
 
 ### 9. Network Security
@@ -184,31 +194,43 @@ RULE: Run with minimum required privileges.
 ```
 RULE: Desktop apps often make direct network connections. Secure them.
 
-- Use HTTPS for all network requests
-- Implement certificate pinning for critical connections
-- Validate SSL/TLS certificates (never disable verification)
-- Use proxy settings from OS (support corporate proxies)
-- Implement timeout on all network requests
-- Handle network errors gracefully (no sensitive data in errors)
-- Use DNS-over-HTTPS if DNS security is a concern
+- Use HTTPS for all network requests.
+- Implement certificate pinning for critical connections.
+- Validate SSL/TLS certificates (never disable verification).
+- Use proxy settings from OS (support corporate proxies).
+- Implement timeout on all network requests.
+- Handle network errors gracefully (no sensitive data in errors).
+- Use DNS-over-HTTPS if DNS security is a concern.
 ```
 
-### 10. Anti-Tampering
+### 10. Anti-Tampering & Static Analysis Evasion
 
 ```
-RULE: Protect application integrity at runtime.
+RULE: Protect application integrity and obfuscate critical assets.
 
-Measures:
-- Runtime integrity checks (verify code signatures)
-- Detect debugger attachment (anti-debugging)
-- Obfuscate sensitive logic (not as sole protection)
-- Monitor for DLL injection / code injection
-- Validate loaded libraries against whitelist
-- Use ASLR, DEP, and other OS security features
-- Implement license validation securely
+Anti-debugging & Instrumentation:
+- Check debugger presence at startup (e.g., IsDebuggerPresent() on Windows, ptrace checks on Linux).
+- Block instrumentation tools (e.g., detect Frida or hook detection).
+- Exit gracefully or self-terminate if tampering is detected.
 
-NOTE: Anti-tampering is defense-in-depth. A determined attacker can bypass it.
-      Never rely solely on client-side protection for security-critical logic.
+Static Analysis Evasion (XORSTR / String Obfuscation):
+- Threat: Attackers run `strings` or reverse-engineer your binary in IDA Pro/Ghidra to harvest hardcoded secrets, server endpoints, or internal logic messages.
+- Prevention:
+  - Do NOT store plaintext strings or API endpoints in native binaries.
+  - Use compile-time string encryption libraries like C++ `xorstr` or `skr::xorstr` to encrypt string literals at compile time and decrypt them in-memory only when executed.
+  - Implement a simple runtime XOR loop to decrypt obfuscated strings immediately before use and zero-out the memory immediately afterward.
+  - For managed languages (.NET, Java), use commercial or robust open-source obfuscators (e.g., ConfuserEx, R8/ProGuard) to encrypt strings and mangle control flow.
+
+Obfuscated String Example (C++ Conceptual):
+  #define XOR_KEY 0x5A
+  void decrypt(char* str, size_t len) {
+      for(size_t i = 0; i < len; i++) str[i] ^= XOR_KEY;
+  }
+  // At runtime, decrypt, use, and immediately clear:
+  char endpoint[] = {0x1D, 0x0E, 0x0E, 0x2A, 0x00}; // "https" obfuscated
+  decrypt(endpoint, 4);
+  make_request(endpoint);
+  SecureZeroMemory(endpoint, sizeof(endpoint));
 ```
 
 ### 11. Clipboard Security
@@ -216,24 +238,50 @@ NOTE: Anti-tampering is defense-in-depth. A determined attacker can bypass it.
 ```
 RULE: Handle clipboard operations securely.
 
-- Clear sensitive data from clipboard after a timeout (30 seconds)
-- Warn users when copying sensitive data
-- Don't write passwords to clipboard without user action
-- Consider using a custom clipboard that auto-clears
-- On macOS: use NSPasteboard with concealed type for sensitive data
+- Clear sensitive data from clipboard after a timeout (30 seconds).
+- Warn users when copying sensitive data.
+- Don't write passwords to clipboard without user action.
+- Consider using a custom clipboard that auto-clears.
+- On macOS: use NSPasteboard with concealed type for sensitive data.
 ```
 
-### 12. Installer Security
+### 12. Installer & Distribution Security
 
 ```
 RULE: Secure the installation process.
 
-- Sign the installer package
-- Verify the installer's integrity before running
-- Install to standard locations (Program Files, /Applications)
-- Set proper file permissions on installed files
-- Don't require admin privileges for installation if possible
-- Clean up temporary files after installation
-- Register uninstaller properly
-- Don't modify system-wide settings without user consent
+- Sign the installer package.
+- Verify the installer's integrity before running.
+- Install to standard locations (Program Files, /Applications).
+- Set proper file permissions on installed files.
+- Don't require admin privileges for installation if possible.
+- Clean up temporary files after installation.
+- Register uninstaller properly.
+- Don't modify system-wide settings without user consent.
+```
+
+### 13. Remote Code Execution (RCE) Prevention
+
+```
+RULE: Strictly prevent arbitrary command execution.
+
+- Avoid shell invocation: Never pass raw user inputs or external parameters directly to shell executors (e.g., C/C++ `system()`, C# `Process.Start()`, Python `os.system()`, Node.js `child_process.exec()`).
+- Use argument lists: Always use safe process APIs that execute binaries directly with structured arguments as an array/list, bypassing command-line parsing shells (e.g., `ProcessStartInfo.ArgumentList` in C#, `Command::new().args()` in Rust, `execFile` in Node.js).
+- Input Whitelisting: If arguments must be dynamic, validate them using strict regex (allowing only alphanumeric characters) and check against an explicit whitelist of allowed commands.
+- Secure Deserialization: Never deserialize untrusted data using polymorphic formatters (e.g., .NET BinaryFormatter, Python pickle, Java native deserialization). Use safe, schema-bound formats like JSON, MessagePack, or Protocol Buffers.
+```
+
+### 14. Library & DLL Hijacking Prevention
+
+```
+RULE: Prevent malicious code injection through dynamic library loading.
+
+- DLL Search Order Hijacking (Windows):
+  - Threat: Windows searches the application directory for DLLs before system folders. Attackers drop a malicious DLL (e.g., `version.dll` or `dwmapi.dll`) in the application folder, triggering RCE when your app starts.
+  - Prevention:
+    - Call `SetDllDirectory("")` at the very entry point of your program to remove the current working directory from the DLL search path.
+    - Always load external libraries using absolute paths or explicit directories.
+    - Use `LoadLibraryEx` with secure flags like `LOAD_LIBRARY_SEARCH_SYSTEM32` to ensure libraries are loaded only from the system folder.
+- Signature verification:
+  - Digitally verify code signatures of dynamically loaded libraries (.dll, .so, .dylib) before executing functions from them.
 ```
