@@ -95,198 +95,171 @@ OWASP API Top 10 ✅     OWASP Mobile Top 10              ✅
 
 # Quick Start
 
-## 1. Clone the Repository
+The easiest way to integrate this AI Security Skill into your coding project is by running our automated installation script directly in your project root.
 
+## Option A: Automated Installation (Recommended)
+
+Run the command corresponding to your operating system in your target project directory:
+
+### Bash (macOS / Linux / Git Bash / WSL)
 ```bash
-git clone https://github.com/YOUR_USERNAME/ai-security-skill.git
+curl -sSL https://raw.githubusercontent.com/avatar-devid/Better-AI-Security-Skill/main/install.sh | bash
 ```
 
-## 2. Configure Your AI Assistant
-
-### Cursor
-
-Create:
-
-```text
-.cursor/rules
+### PowerShell (Windows)
+```powershell
+irm https://raw.githubusercontent.com/avatar-devid/Better-AI-Security-Skill/main/install.ps1 | iex
 ```
 
-```text
-You have access to a hierarchical Security Skill system.
-
-At the START of every task, read:
-[PATH_TO]/Security.md
-
-Follow the decision tree.
-LOAD only matching files.
-Apply every loaded security rule.
-If nothing matches, STOP.
-```
+The script will automatically:
+1. Download the `.skills/Security` folder into your project.
+2. Generate all the relevant AI rules/configuration files (`.cursor/rules/security.mdc`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.windsurfrules`, `GEMINI.md`) referencing your local `.skills/Security/Security.md` relative path.
 
 ---
 
-### Claude Code
+## Option B: Manual Installation
 
-Create:
+If you prefer to install it manually:
 
+### 1. Clone this Repository or Copy Files
+Copy the `.skills` directory into your project root:
 ```text
-CLAUDE.md
+your-project/
+└── .skills/
+    └── Security/
 ```
 
+### 2. Configure Your AI Assistant
+Create the configuration file(s) for your AI assistant in your project root using the relative path `.skills/Security/Security.md`:
+
+#### Cursor
+Create `.cursor/rules/security.mdc`:
 ```markdown
+---
+description: Apply security best practices to code generation and updates
+globs: *
+---
+# Security Rules
+Before writing or modifying any code in this project, read and follow the decision tree in:
+.skills/Security/Security.md
+
+LOAD only the relevant security modules and apply all loaded rules.
+```
+
+#### Claude Code
+Create `CLAUDE.md`:
+```markdown
+# CLAUDE.md
+
 ## Security Skill
+This project uses a hierarchical security skill system. Before implementing code, read:
+.skills/Security/Security.md
 
-Before implementing code, read:
-
-[PATH_TO]/Security.md
-
-Follow the decision tree.
-Load only matching modules.
-Apply every loaded rule.
+Follow its decision tree and load the matching security modules. Apply all loaded rules.
 ```
 
----
-
-### GitHub Copilot
-
-Create:
-
-```text
-.github/copilot-instructions.md
-```
-
+#### GitHub Copilot
+Create `.github/copilot-instructions.md`:
 ```markdown
+# Copilot Instructions
+
 ## Security Skill Protocol
+This project uses a hierarchical security skill system. Before implementing any feature:
 
-Before implementing any feature:
-
-Read:
-[PATH_TO]/Security.md
-
-Evaluate the decision tree.
-
-Load every matching module.
-
-Apply all loaded security rules.
+1. Read: .skills/Security/Security.md
+2. Evaluate the decision tree and load every matching module.
+3. Apply all loaded rules.
 ```
 
----
+#### Windsurf
+Create `.windsurfrules`:
+```markdown
+You have access to a hierarchical Security Skill system.
+At the START of every task, read:
+.skills/Security/Security.md
 
-### OpenCode
-
-Create:
-
-```text
-.opencode.md
+Follow the decision tree. LOAD only matching files. Apply every loaded security rule.
 ```
 
+#### Gemini
+Create `GEMINI.md`:
 ```markdown
 ## Security Skill
+Before every implementation task, read:
+.skills/Security/Security.md
 
-Read [PATH_TO]/Security.md at the beginning of every task.
-
-Follow the decision tree.
-
-Load only matching modules.
-
-Apply all loaded security rules.
+Follow every LOAD directive and apply every loaded security rule.
 ```
 
----
-
-### Gemini / Pi
-
-Create:
-
-```text
-GEMINI.md
-```
-
-```markdown
-## Security Skill
-
-This project uses a hierarchical security system located at:
-
-[PATH_TO]/Security.md
-
-Read it before every implementation task.
-
-Follow every LOAD directive.
-
-Apply every loaded security rule.
-```
-
----
-
-## 3. Done!
-
-Your AI assistant will automatically read `Security.md`, identify the relevant modules, and apply security best practices for every coding task.
+### 3. Done!
+Your AI assistant will automatically read `.skills/Security/Security.md`, follow the decision tree, and apply best practices.
 
 ---
 
 # File Structure
 
 ```text
-Security/
-│
-├── Security.md                      # L1 Root Router
-│
-├── Security_Web.md
-├── Security_API.md
-├── Security_Database.md
-├── Security_Auth.md
-├── Security_Session.md
-├── Security_FileUpload.md
-├── Security_Crypto.md
-├── Security_Desktop.md
-├── Security_Mobile.md
-├── Security_Payment.md
-├── Security_Infrastructure.md
-│
-├── modules/
-│   ├── XSS.md
-│   ├── CSRF.md
-│   ├── CSP.md
-│   ├── Cookie.md
-│   ├── SQL_Security.md
-│   ├── ORM_Security.md
-│   ├── NoSQL_Security.md
-│   ├── Migration_Security.md
-│   ├── JWT.md
-│   ├── OAuth.md
-│   ├── Password.md
-│   ├── MFA.md
-│   ├── RBAC.md
-│   ├── API_REST.md
-│   ├── API_GraphQL.md
-│   ├── API_gRPC.md
-│   ├── API_WebSocket.md
-│   ├── FileUpload_Validation.md
-│   ├── FileUpload_Storage.md
-│   ├── Crypto_Symmetric.md
-│   ├── Crypto_Asymmetric.md
-│   ├── Crypto_Hashing.md
-│   ├── Mobile_Android.md
-│   ├── Mobile_iOS.md
-│   ├── Mobile_Flutter.md
-│   ├── Mobile_ReactNative.md
-│   ├── Desktop_Electron.md
-│   ├── Desktop_DotNet.md
-│   ├── Desktop_Tauri.md
-│   ├── SSRF.md
-│   ├── RCE.md
-│   ├── PathTraversal.md
-│   ├── IDOR.md
-│   ├── RateLimit.md
-│   ├── Logging.md
-│   ├── SecretManagement.md
-│   └── OWASP.md
-│
-├── Integration.md
-└── README.md
+.skills/
+└── Security/
+    ├── Security.md                      # L1 Root Router
+    ├── Security_Web.md
+    ├── Security_API.md
+    ├── Security_Database.md
+    ├── Security_Auth.md
+    ├── Security_Session.md
+    ├── Security_FileUpload.md
+    ├── Security_Crypto.md
+    ├── Security_Desktop.md
+    ├── Security_Mobile.md
+    ├── Security_Payment.md
+    ├── Security_Infrastructure.md
+    │
+    └── modules/
+        ├── XSS.md
+        ├── CSRF.md
+        ├── CSP.md
+        ├── Cookie.md
+        ├── SQL_Security.md
+        ├── ORM_Security.md
+        ├── NoSQL_Security.md
+        ├── Migration_Security.md
+        ├── JWT.md
+        ├── OAuth.md
+        ├── Password.md
+        ├── MFA.md
+        ├── RBAC.md
+        ├── API_REST.md
+        ├── API_GraphQL.md
+        ├── API_gRPC.md
+        ├── API_WebSocket.md
+        ├── FileUpload_Validation.md
+        ├── FileUpload_Storage.md
+        ├── Crypto_Symmetric.md
+        ├── Crypto_Asymmetric.md
+        ├── Crypto_Hashing.md
+        ├── Mobile_Android.md
+        ├── Mobile_iOS.md
+        ├── Mobile_Flutter.md
+        ├── Mobile_ReactNative.md
+        ├── Desktop_Electron.md
+        ├── Desktop_DotNet.md
+        ├── Desktop_Tauri.md
+        ├── SSRF.md
+        ├── RCE.md
+        ├── PathTraversal.md
+        ├── IDOR.md
+        ├── RateLimit.md
+        ├── Logging.md
+        ├── SecretManagement.md
+        └── OWASP.md
+
+Integration.md
+README.md
+install.sh                           # Bash installation script
+install.ps1                          # PowerShell installation script
 ```
 
-**49 files** • **~294 KB** • **37 deep modules**
+**53 files** • **~305 KB** • **37 deep modules**
 
 ---
 
