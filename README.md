@@ -397,6 +397,23 @@ See `Integration.md` for complete setup instructions.
 
 ---
 
+# Repository Resources & Metadata
+
+## 🏷️ GitHub Topics
+This project is categorized under the following topics:
+`security` • `ai` • `copilot` • `cursor` • `claude` • `prompt-engineering` • `ai-agent` • `secure-coding` • `owasp` • `security-rules` • `llm`
+
+## 📢 GitHub Discussions
+Got questions, suggestions, or custom rules to share? Join the conversation in [GitHub Discussions](https://github.com/avatar-devid/Better-AI-Security-Skill/discussions). We welcome community feedback and collaboration on refining security protocols!
+
+## 📖 GitHub Wiki
+For deep dives, custom extension guides, and additional integration patterns, please visit our [GitHub Wiki](https://github.com/avatar-devid/Better-AI-Security-Skill/wiki).
+
+## 📦 Releases & Tags
+We follow semantic versioning. You can find stable milestones under the [Releases](https://github.com/avatar-devid/Better-AI-Security-Skill/releases) tab. Use git tags to lock down a specific, audited version of these rules in your production pipelines.
+
+---
+
 # License
 
 MIT License — free to use, modify, and distribute.
